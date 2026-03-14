@@ -375,6 +375,7 @@ async def voxtral_bridge(browser_ws: WebSocket, session: Session) -> None:
 
                     elif msg_type == "transcription.done":
                         session.last_done_time = time.time()
+                        await session.broadcast({"type": "transcript.done"})
                         # Condición A: dispara análisis si han pasado MIN_ANALYSIS_INTERVAL
                         if (time.time() - session.last_analysis_time) >= MIN_ANALYSIS_INTERVAL:
                             asyncio.create_task(run_analysis(session))

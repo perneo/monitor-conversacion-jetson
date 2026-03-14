@@ -354,7 +354,11 @@ function handleEvent(msg) {
   switch (msg.type) {
 
     case 'transcript.delta':
-      appendTranscript(msg.text || '');
+      accumulateDelta(msg.text || '');
+      break;
+
+    case 'transcript.done':
+      commitCurrentLine();
       break;
 
     case 'semaphore.update':
@@ -380,23 +384,34 @@ function handleEvent(msg) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Panel de transcripción
+// Los deltas se acumulan en un <p> en curso; transcript.done lo cierra.
 // ─────────────────────────────────────────────────────────────────────────────
-function appendTranscript(text) {
-  const trimmed = text.trim();
-  if (!trimmed) return;
+let currentP = null;  // párrafo en construcción
+
+function accumulateDelta(text) {
+  if (!text) return;
 
   if (transcriptEl.classList.contains('placeholder')) {
     transcriptEl.classList.remove('placeholder');
     transcriptEl.textContent = '';
   }
 
-  const p = document.createElement('p');
-  p.textContent = trimmed;
-  transcriptEl.appendChild(p);
+  if (!currentP) {
+    currentP = document.createElement('p');
+    transcriptEl.appendChild(currentP);
+  }
+
+  currentP.textContent += text;
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
 
+function commitCurrentLine() {
+  // Cierra el párrafo activo; el siguiente delta abrirá uno nuevo
+  currentP = null;
+}
+
 function resetTranscript() {
+  currentP = null;
   transcriptEl.innerHTML = '';
   transcriptEl.classList.add('placeholder');
   transcriptEl.textContent = 'Inicia una sesión para comenzar la transcripción.';
