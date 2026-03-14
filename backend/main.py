@@ -384,6 +384,7 @@ async def voxtral_bridge(browser_ws: WebSocket, session: Session) -> None:
                             session.buffer.add(delta)
                             await session.broadcast({
                                 "type": "transcript.delta",
+                                "text": delta,
                                 "timestamp_ms": int(time.time() * 1000),
                             })
 
