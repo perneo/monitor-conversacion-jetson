@@ -72,14 +72,42 @@ services:
       start_period: 300s
     restart: unless-stopped
 
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8080:8080"
+    environment:
+      - VOXTRAL_WS_URL=ws://vllm-voxtral:8000/v1/realtime
+      - QWEN_HTTP_URL=http://vllm-qwen:8001/v1/chat/completions
+      - VOXTRAL_MODEL=mistralai/Voxtral-Mini-4B-Realtime-2602
+      - QWEN_MODEL=Qwen/Qwen2.5-7B-Instruct
+      - BUFFER_WINDOW_SECONDS=90
+      - MIN_ANALYSIS_INTERVAL_SECONDS=15
+      - MAX_ANALYSIS_INTERVAL_SECONDS=20
+      - THRESHOLD_GREEN=65
+      - THRESHOLD_RED=40
+      - CONFIRMATIONS_FOR_RED=2
+    depends_on:
+      vllm-voxtral:
+        condition: service_healthy
+      vllm-qwen:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   dashboard:
     build: ./dashboard
     container_name: dashboard
     ports:
       - "80:80"
     depends_on:
-      - vllm-voxtral
-      - vllm-qwen
+      - backend
     restart: unless-stopped
 
 volumes:
