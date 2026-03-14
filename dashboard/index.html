@@ -401,12 +401,19 @@ function accumulateDelta(text) {
     transcriptEl.appendChild(currentP);
   }
 
-  currentP.textContent += text;
+  // Añade espacio entre deltas si el párrafo no está vacío ni termina en espacio
+  const current = currentP.textContent;
+  const needsSpace = current.length > 0 && !current.endsWith(' ') && !text.startsWith(' ');
+  currentP.textContent = current + (needsSpace ? ' ' : '') + text;
   transcriptEl.scrollTop = transcriptEl.scrollHeight;
 }
 
 function commitCurrentLine() {
   // Cierra el párrafo activo; el siguiente delta abrirá uno nuevo
+  if (currentP && !currentP.textContent.trim()) {
+    // Descarta párrafos vacíos (done sin deltas previos)
+    transcriptEl.removeChild(currentP);
+  }
   currentP = null;
 }
 
