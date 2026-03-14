@@ -276,7 +276,8 @@ registerProcessor('voxtral-processor', VoxtralProcessor);
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuración
 // ─────────────────────────────────────────────────────────────────────────────
-const BACKEND = window.BACKEND_URL || 'ws://localhost:8080';
+const WS_SCHEME = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const BACKEND   = `${WS_SCHEME}//${window.location.host}`;
 document.getElementById('footer-backend').textContent = BACKEND;
 
 // ─────────────────────────────────────────────────────────────────────────────
