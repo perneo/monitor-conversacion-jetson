@@ -282,23 +282,15 @@ class VoxtralProcessor extends AudioWorkletProcessor {
     super();
     this._buf = new Int16Array(7680);  // 480ms @ 16kHz
     this._pos = 0;
-    this._chunkCount = 0;
   }
   process(inputs) {
     const ch = inputs[0] && inputs[0][0];
-    if (!ch) {
-      // Avisa al hilo principal si el canal llega vacío (posible problema de stream)
-      this.port.postMessage({ type: 'debug', event: 'empty_input' });
-      return true;
-    }
+    if (!ch) return true;
     for (let i = 0; i < ch.length; i++) {
       // Float32 → Int16 con clamp [-1, 1]
       const s = ch[i] < -1 ? -1 : ch[i] > 1 ? 1 : ch[i];
       this._buf[this._pos++] = s < 0 ? s * 32768 : s * 32767;
       if (this._pos >= this._buf.length) {
-        this._chunkCount++;
-        // Notifica al hilo principal: chunk listo + contador
-        this.port.postMessage({ type: 'debug', event: 'chunk_ready', count: this._chunkCount });
         this.port.postMessage(this._buf.buffer, [this._buf.buffer]);
         this._buf = new Int16Array(7680);
         this._pos = 0;
@@ -553,37 +545,8 @@ async function setupWorklet(stream) {
   const source = audioCtx.createMediaStreamSource(stream);
   workletNode   = new AudioWorkletNode(audioCtx, 'voxtral-processor');
 
-  let _wsChunkCount = 0;
-
-  workletNode.port.onmessage = ({ data }) => {
-    // Mensajes de debug del worklet (no son audio)
-    if (data && data.type === 'debug') {
-      if (data.event === 'chunk_ready') {
-        // Log cada chunk (primeros 5, luego cada 50)
-        if (data.count <= 5 || data.count % 50 === 0) {
-          console.debug(`[Worklet] chunk_ready #${data.count}`);
-        }
-      } else if (data.event === 'empty_input') {
-        console.warn('[Worklet] process() recibió canal de audio vacío');
-      }
-      return;
-    }
-
-    // Mensaje de audio: ArrayBuffer con PCM16
-    const buffer = data;
-    const wsStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-    const wsState  = wsAudio ? wsStates[wsAudio.readyState] : 'NULL';
-
-    if (wsAudio?.readyState !== WebSocket.OPEN) {
-      console.warn(`[Audio] Chunk descartado — WS estado: ${wsState}`);
-      return;
-    }
-
-    _wsChunkCount++;
-    if (_wsChunkCount <= 5 || _wsChunkCount % 50 === 0) {
-      console.log(`[Audio] Enviando chunk #${_wsChunkCount} — WS: ${wsState}, bytes PCM: ${buffer.byteLength}`);
-    }
-
+  workletNode.port.onmessage = ({ data: buffer }) => {
+    if (wsAudio?.readyState !== WebSocket.OPEN) return;
     wsAudio.send(JSON.stringify({
       type:  'input_audio_buffer.append',
       audio: arrayBufferToBase64(buffer),
