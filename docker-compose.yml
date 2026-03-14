@@ -1,43 +1,86 @@
-version: '3.8'
-
 services:
   vllm-voxtral:
     build: ./vllm-voxtral
-    ports:
-      - "8000:8000"
-    environment:
-      - HF_TOKEN=${HF_TOKEN}
-    volumes:
-      - hf_cache:/root/.cache/huggingface
+    container_name: vllm-voxtral
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
+              count: 1
               capabilities: [gpu]
+    environment:
+      - VLLM_DISABLE_COMPILE_CACHE=1
+      - HF_HOME=/root/.cache/huggingface
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    command:
+      - "mistralai/Voxtral-Mini-4B-Realtime-2602"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+      - "--max-model-len"
+      - "32768"
+      - "--gpu-memory-utilization"
+      - "0.5"
+      - "--compilation_config"
+      - '{"cudagraph_mode":"PIECEWISE"}'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+    restart: unless-stopped
 
   vllm-qwen:
     build: ./vllm-qwen
-    ports:
-      - "8001:8001"
-    environment:
-      - HF_TOKEN=${HF_TOKEN}
-    volumes:
-      - hf_cache:/root/.cache/huggingface
+    container_name: vllm-qwen
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
+              count: 1
               capabilities: [gpu]
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+    ports:
+      - "8001:8001"
+    command:
+      - "Qwen/Qwen2.5-7B-Instruct"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8001"
+      - "--max-model-len"
+      - "32768"
+      - "--gpu-memory-utilization"
+      - "0.4"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+    restart: unless-stopped
 
   dashboard:
     build: ./dashboard
+    container_name: dashboard
     ports:
       - "80:80"
     depends_on:
       - vllm-voxtral
       - vllm-qwen
+    restart: unless-stopped
 
 volumes:
   hf_cache:
