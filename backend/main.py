@@ -352,10 +352,7 @@ async def voxtral_bridge(browser_ws: WebSocket, session: Session) -> None:
             logger.info("[VOXTRAL] → %s", json.dumps(session_update))
             await voxtral.send(json.dumps(session_update))
 
-            # Espera confirmación de session.update antes de enviar audio
-            upd_ack = json.loads(await voxtral.recv())
-            logger.info("[VOXTRAL] ← %s", json.dumps(upd_ack))
-
+            # Voxtral no envía confirmación de session.update — continuamos directamente
             commit_msg = {"type": "input_audio_buffer.commit"}
             logger.info("[VOXTRAL] → %s", json.dumps(commit_msg))
             await voxtral.send(json.dumps(commit_msg))
