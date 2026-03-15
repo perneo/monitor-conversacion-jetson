@@ -155,3 +155,7 @@ monitor-conversacion/
 └── docs/
     └── arquitectura_monitor_conversacion.svg
 ```
+
+## Licencia
+
+Este proyecto está bajo la licencia MIT. Ver [LICENSE](LICENSE) para más detalles.
