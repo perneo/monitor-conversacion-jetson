@@ -99,11 +99,19 @@ monitor-conversacion/
 ├── .env.example
 ├── README.md
 ├── SPECS.md
+├── especificaciones-sistema-semaforo.md
+├── backend/
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
+├── dashboard/
+│   ├── Dockerfile
+│   ├── index.html
+│   └── nginx.conf
 ├── vllm-voxtral/
 │   └── Dockerfile
 ├── vllm-qwen/
 │   └── Dockerfile
-└── dashboard/
-    ├── Dockerfile
-    └── index.html
+└── docs/
+    └── arquitectura_monitor_conversacion.svg
 ```
