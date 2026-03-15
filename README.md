@@ -28,6 +28,31 @@ Audio (micrófono) → WebSocket → [vllm-voxtral] → chunks de texto
 
 ![Arquitectura del sistema](docs/arquitectura_monitor_conversacion.svg)
 
+## Cómo funciona el análisis
+
+**Sistema de puntuación:** Qwen evalúa cada fragmento de conversación con una puntuación de 0 a 100 (100 = máxima cordialidad) cada 15–20 segundos.
+
+**Estados del semáforo:**
+
+| Estado | Puntuación | Significado |
+|---|---|---|
+| 🟢 Verde | > 65 | Tono cordial o neutro |
+| 🟡 Amarillo | 40–65 | Tensión o frustración sin insulto directo |
+| 🔴 Rojo | < 40 | Insultos, descalificaciones o amenazas |
+
+**Histéresis:** el estado rojo requiere 2 evaluaciones consecutivas por debajo de 40 para activarse, evitando falsas alarmas por una frase aislada. La recuperación a verde ocurre con una sola evaluación por encima de 65.
+
+**Buffer de contexto:** se mantiene una ventana deslizante de 90 segundos de conversación con marcas temporales relativas. Esto permite al modelo detectar tendencias y patrones de escalada, no solo frases aisladas.
+
+**Criterios de evaluación:**
+- **Verde** — desacuerdo técnico respetuoso, debate intenso sin descalificación personal, frustración expresada sin insulto
+- **Amarillo** — tensión sostenida, tono agresivo sin insulto directo, señales iniciales de escalada
+- **Rojo** — insultos explícitos o implícitos, descalificaciones personales, amenazas directas o veladas, escalada progresiva de agresividad
+
+**Consejos de mediación:** cuando la conversación deriva hacia amarillo o rojo, el sistema genera un consejo concreto dirigido al grupo en segunda persona del plural para ayudar a reconducir la situación (ej: _"Os propongo hacer una pausa y retomar el punto de desacuerdo con calma"_).
+
+**Privacidad:** ningún fragmento de audio ni texto se almacena en disco. Todo opera en memoria durante la sesión y se destruye al terminar.
+
 ## Requisitos
 
 - Docker + Docker Compose con soporte NVIDIA (`nvidia-container-toolkit`)
