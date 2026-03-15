@@ -14,6 +14,8 @@ Audio (micrófono) → WebSocket → [vllm-voxtral] → chunks de texto
                                          [dashboard] web en tiempo real
 ```
 
+![Arquitectura del sistema](docs/arquitectura.svg)
+
 ## Requisitos
 
 - Docker + Docker Compose con soporte NVIDIA (`nvidia-container-toolkit`)
