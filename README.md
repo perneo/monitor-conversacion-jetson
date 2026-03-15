@@ -1,5 +1,7 @@
 # monitor-conversacion
 
+> Una iniciativa de [ColoqIALab](https://coloquialab.es)
+
 Sistema de monitorización de conversaciones en tiempo real. Transcribe audio con Voxtral, evalúa el tono con Qwen y muestra el estado en un dashboard web con semáforo visual.
 
 ## Arquitectura
