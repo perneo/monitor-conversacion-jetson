@@ -107,9 +107,9 @@ El dashboard estará disponible en: **http://localhost**
 
 ## Uso de VRAM estimado
 
-- Voxtral-Mini-4B: ~10 GB
-- Qwen2.5-7B: ~15 GB
-- **Total: ~25 GB de 80 GB disponibles**
+- Voxtral-Mini-4B: ~ GB
+- Qwen2.5-7B: ~ GB
+- **Total: ~6 GB de 8 GB disponibles**
 
 ## Prueba individual de servicios
 
